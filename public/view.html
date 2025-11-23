@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Paste</h1>
+  <pre id="display"></pre>
+
+  <script>
+    async function load() {
+      const params = new URLSearchParams(location.search);
+      const id = params.get("id");
+
+      const res = await fetch("/api/paste?id=" + id);
+      const data = await res.json();
+
+      document.getElementById("display").textContent =
+        data.content || data.error;
+    }
+
+    load();
+  </script>
+</body>
+</html>

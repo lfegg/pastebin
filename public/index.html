@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Create Paste</h1>
+  <textarea id="content" rows="10" cols="40"></textarea><br>
+  <button onclick="createPaste()">Create</button>
+
+  <script>
+    async function createPaste() {
+      const content = document.getElementById("content").value;
+
+      const res = await fetch("/api/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content })
+      });
+
+      const data = await res.json();
+      if (data.id) {
+        window.location.href = "/view.html?id=" + data.id;
+      } else {
+        alert("Error: " + data.error);
+      }
+    }
+  </script>
+</body>
+</html>
