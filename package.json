@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node -e \"console.log('Use `vercel dev` for local dev')\"",
-    "build": "echo no-build",
-    "start": "node -e \"console.log('Use `vercel dev` for local dev')\""
+    "build": "echo no-build"
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@vercel/kv": "^3.0.0"
   }
 }

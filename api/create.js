@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   const id = generate_id();
 
-  setPaste(id, content);
+  await setPaste(id, content);
 
   return res.json({ id });
 }
