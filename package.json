@@ -2,10 +2,14 @@
   "name": "pastebin-moonbit-vercel",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "echo no-build"
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@vercel/kv": "^3.0.0"
   }
 }

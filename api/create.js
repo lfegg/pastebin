@@ -8,7 +8,7 @@ function generate_id() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "POST only" });
   }
@@ -20,7 +20,7 @@ export default function handler(req, res) {
 
   const id = generate_id();
 
-  setPaste(id, content);
+  await setPaste(id, content);
 
   return res.json({ id });
 }
