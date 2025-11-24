@@ -1,0 +1,13 @@
+{
+  "name": "pastebin-moonbit-vercel",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node -e \"console.log('Use `vercel dev` for local dev')\"",
+    "build": "echo no-build",
+    "start": "node -e \"console.log('Use `vercel dev` for local dev')\""
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
