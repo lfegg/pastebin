@@ -9,18 +9,26 @@ function generate_id() {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "POST only" });
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "POST only" });
+    }
+
+    const content = req.body?.content || "";
+
+    const valid = validate(content);
+    if (!valid) return res.json({ error: "Invalid content" });
+
+    const id = generate_id();
+
+    const success = await setPaste(id, content);
+    if (!success) {
+      return res.status(500).json({ error: "Failed to save paste" });
+    }
+
+    return res.json({ id });
+  } catch (err) {
+    console.error('Handler error:', err);
+    return res.status(500).json({ error: err.message });
   }
-
-  const content = req.body?.content || "";
-
-  const valid = validate(content);
-  if (!valid) return res.json({ error: "Invalid content" });
-
-  const id = generate_id();
-
-  await setPaste(id, content);
-
-  return res.json({ id });
 }
