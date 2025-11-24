@@ -2,21 +2,19 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// 检测是否配置了 Vercel KV
-const hasKV = !!process.env.KV_REST_API_URL;
-let kv = null;
-
-if (hasKV) {
-  try {
-    const kvModule = await import('@vercel/kv');
-    kv = kvModule.kv;
-  } catch (err) {
-    console.error('Failed to load @vercel/kv:', err);
-  }
-}
-
 // 内存存储作为回退方案
 const memoryStore = {};
+
+// 检测是否配置了 Vercel KV
+const hasKV = !!process.env.KV_REST_API_URL;
+let kvPromise = null;
+
+if (hasKV) {
+  kvPromise = import('@vercel/kv').then(module => module.kv).catch(err => {
+    console.error('Failed to load @vercel/kv:', err);
+    return null;
+  });
+}
 
 // 本地开发时使用文件系统
 let STORE_DIR;
@@ -40,9 +38,14 @@ export async function setPaste(id, content) {
       // 本地开发：使用文件系统
       const filePath = path.join(STORE_DIR, `${id}.txt`);
       fs.writeFileSync(filePath, content, 'utf8');
-    } else if (kv) {
+    } else if (kvPromise) {
       // 生产环境：使用 Vercel KV
-      await kv.set(`paste:${id}`, content);
+      const kv = await kvPromise;
+      if (kv) {
+        await kv.set(`paste:${id}`, content);
+      } else {
+        memoryStore[id] = content;
+      }
     } else {
       // 回退：使用内存存储
       memoryStore[id] = content;
@@ -65,9 +68,14 @@ export async function getPaste(id) {
         return fs.readFileSync(filePath, 'utf8');
       }
       return null;
-    } else if (kv) {
+    } else if (kvPromise) {
       // 生产环境：使用 Vercel KV
-      return await kv.get(`paste:${id}`);
+      const kv = await kvPromise;
+      if (kv) {
+        return await kv.get(`paste:${id}`);
+      } else {
+        return memoryStore[id] || null;
+      }
     } else {
       // 回退：使用内存存储
       return memoryStore[id] || null;
