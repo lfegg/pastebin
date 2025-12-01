@@ -1,19 +1,143 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Paste</title>
+  <style>
+    /* 1. 基础页面设置 */
+    body {
+      margin: 0;
+      padding: 0;
+      /* 这里用 min-height 而不是 height，防止内容过长时顶部被截断 */
+      min-height: 100vh; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 5vh; /* 给顶部留一点空间 */
+      background-color: #f4f6f8; /* 柔和的灰蓝色背景 */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      box-sizing: border-box;
+    }
+
+    /* 2. 卡片容器 */
+    .card {
+      background: white;
+      width: 800px;        /* 默认宽度 */
+      max-width: 90%;      /* 移动端自适应 */
+      padding: 40px;
+      margin-bottom: 40px; /* 底部留白，方便滚动 */
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* 柔和的阴影 */
+    }
+
+    /* 3. 标题样式 */
+    h1 {
+      margin-top: 0;
+      color: #333;
+      font-size: 24px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* 4. 内容展示区域 (pre) */
+    #display {
+      background-color: #fafafa; /* 内容区背景稍微深一点点，形成区分 */
+      color: #2c3e50;
+      padding: 20px;
+      border-radius: 6px;
+      border: 1px solid #e1e4e8;
+      
+      /* 字体设置 */
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      
+      /* 关键：处理长文本换行 */
+      white-space: pre-wrap;       /* 保留空格和换行，但允许自动折行 */
+      word-wrap: break-word;       /* 防止长单词撑破布局 */
+      overflow-x: auto;            /* 极端情况下允许横向滚动 */
+    }
+
+    /* 一个小的“复制”按钮样式（可选功能） */
+    .copy-btn {
+      font-size: 14px;
+      padding: 6px 12px;
+      background-color: #eee;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #555;
+      transition: background 0.2s;
+    }
+    .copy-btn:hover {
+      background-color: #ddd;
+    }
+
+    /* 错误信息样式 */
+    .error {
+      color: #d32f2f;
+      background-color: #ffebee;
+      padding: 10px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
 <body>
-  <h1>Paste</h1>
-  <pre id="display"></pre>
+
+  <div class="card">
+    <h1>
+      Paste Content
+      <button class="copy-btn" onclick="copyContent()">Copy</button>
+    </h1>
+    
+    <pre id="display">Loading...</pre>
+  </div>
 
   <script>
     async function load() {
+      const displayEl = document.getElementById("display");
       const params = new URLSearchParams(location.search);
       const id = params.get("id");
 
-      const res = await fetch("/api/paste?id=" + id);
-      const data = await res.json();
+      if (!id) {
+        displayEl.textContent = "Error: No ID provided.";
+        displayEl.classList.add("error");
+        return;
+      }
 
-      document.getElementById("display").textContent =
-        data.content || data.error;
+      try {
+        const res = await fetch("/api/paste?id=" + id);
+        
+        if (!res.ok) throw new Error("API Request failed");
+        
+        const data = await res.json();
+
+        if (data.error) {
+          displayEl.textContent = data.error;
+          displayEl.classList.add("error");
+        } else {
+          displayEl.textContent = data.content;
+        }
+      } catch (err) {
+        displayEl.textContent = "Error loading paste: " + err.message;
+        displayEl.classList.add("error");
+      }
+    }
+
+    // 功能
+    function copyContent() {
+      const content = document.getElementById("display").textContent;
+      navigator.clipboard.writeText(content).then(() => {
+        const btn = document.querySelector(".copy-btn");
+        const originalText = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => btn.textContent = originalText, 2000);
+      });
     }
 
     load();
